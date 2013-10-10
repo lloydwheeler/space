@@ -1,6 +1,8 @@
 var Player = require("./Player");
 
 function Game() {
+  // Need to make some of these vars private
+
   this.numPlayers = 0;
   this.players = [];
   this.playArea = {
@@ -11,7 +13,7 @@ function Game() {
 
 Game.prototype.getGameState = function() {
   return this;
-}
+};
 
 Game.prototype.getNumPlayers = function() {
     return this.numPlayers;
@@ -19,24 +21,24 @@ Game.prototype.getNumPlayers = function() {
 
 Game.prototype.getPlayer = function(playerID) {
   return this.players[playerID];
-}
+};
 
 Game.prototype.getPlayers = function() {
   return this.players;
-}
+};
 
 Game.prototype.getPlayArea = function() {
   return this.playArea;
-}
+};
 
 Game.prototype.addPlayer = function(name) {
   this.players[this.numPlayers] = new Player(name, this.numPlayers + 1);
   this.numPlayers++;
-}
+};
 
 Game.prototype.removePlayer = function(playerID) {
   this.players.removeElement(playerID);
-}
+};
 
 Game.prototype.removePlayerByUsername = function(username) {
   var i;
@@ -49,7 +51,7 @@ Game.prototype.removePlayerByUsername = function(username) {
       console.log("found!");
     }
   }
-}
+};
 
 Array.prototype.removeElement = function(id) {
   if(this.indexOf(id) != -1) {

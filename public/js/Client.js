@@ -2,6 +2,7 @@ function Client(server) {
   this.socket = io.connect(server);
   this.game;
   this.player;
+  this.stars = [];
   this.initListeners();
   this.initGame();
 }
@@ -29,14 +30,14 @@ Client.prototype.initListeners = function() {
   });
   this.socket.on('newGameState', function(gamestate) {
     self.updateGameState(gamestate);
-    console.log(self.getGameState());
+    // console.log(self.getGameState());
   });
 }
 
 Client.prototype.updateGameState = function(game) {
   this.game = game;
-  console.log(this.game);
-  console.log(this.player);
+  // console.log(this.game);
+  // console.log(this.player);
 }
 
 Client.prototype.getGameState = function() {
@@ -60,6 +61,8 @@ Client.prototype.resizeCanvas = function() {
   var height = $(window).height();
   var width = $(window).width();
 
+  this.ctx.clearRect(0,0,width,height);
+
   this.canvas.width = width;
   this.canvas.height = height;
 
@@ -68,22 +71,41 @@ Client.prototype.resizeCanvas = function() {
 
 
   for(var i = 0; i < 25; i++) {
-    this.ctx.beginPath();
-    this.ctx.arc(this.canvas.width*Math.random(), this.canvas.height*Math.random(), Math.random()*3, 0, 2 * Math.PI, false);
-    this.ctx.fillStyle = 'rgba(255,255,255,' + Math.random()*.75 + ')';
-    this.ctx.fill();
+    var star = new Star(this.canvas.width*Math.random(), this.canvas.height*Math.random());
+    star.draw(this.ctx);
+    this.stars.push(star);
   }
 
 }
 
 Client.prototype.drawPlayers = function() {
+
+  var height = $(window).height();
+  var width = $(window).width();
+
+  this.ctx.clearRect(0,0,width,height);
+
+  this.canvas.width = width;
+  this.canvas.height = height;
+
+  this.ctx.fillStyle = "#2A2C33";
+  this.ctx.fillRect(0,0,width,height);
+  
   for(var i = 0; i < this.game.numPlayers; i++) {
     this.ctx.beginPath();
     this.ctx.rect(this.canvas.width*Math.random(), this.canvas.height*Math.random(), 20, 20);
     this.ctx.fillStyle = 'rgba(255,125,125,1)';
     this.ctx.fill();
   }
+
+  this.drawStars();
 }
 
+Client.prototype.drawStars = function() {
+  var i = 0, numStars = this.stars.length;
+  for(; i < numStars; i++) {
+    this.stars[i].draw(this.ctx);
+  }
+}
 
   

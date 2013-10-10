@@ -1,8 +1,10 @@
 function Star(x,y) {
   this.pos = {
     x: x,
-    y: y;
+    y: y
   };
+  this.size = Math.random() * 3;
+  this.luminosity = (this.size/3);
   this.z = Math.random()*0.5;
 }
 
@@ -12,9 +14,8 @@ Star.prototype.update = function(movementDelta) {
 };
 
 Star.prototype.draw = function(ctx) {
-  ctx.fillStyle = "rgb(255, 255, 255)";
   ctx.beginPath();
-  ctx.arc(this.pos.x, this.pos.y, (this.z*10), 0, Math.PI*2, false);
-  ctx.closePath();
+  ctx.arc(this.pos.x, this.pos.y, this.size, 0, 2 * Math.PI, false);
+  ctx.fillStyle = 'rgba(255,255,255,' + this.luminosity + ')';
   ctx.fill();
 };

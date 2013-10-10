@@ -1,11 +1,10 @@
-function Player(username, playerID, team) {
+function Player(username, playerID) {
   this.id = playerID;
   this.username = username;
   this.position = {
     x: 10,
     y: 10
   }
-  this.team = team;
 }
 
 Player.prototype.getID = function() {
