@@ -1,9 +1,9 @@
-function Player(username, playerID) {
+function Player(username, playerID, canvasWidth, canvasHeight) {
   this.id = playerID;
   this.username = username;
   this.position = {
-    x: 10,
-    y: 10
+    x: canvasWidth*Math.random(),
+    y: canvasHeight*Math.random()
   }
 }
 

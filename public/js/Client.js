@@ -80,6 +80,8 @@ Client.prototype.resizeCanvas = function() {
 
 Client.prototype.drawPlayers = function() {
 
+  console.log(this.game.players);
+
   var height = $(window).height();
   var width = $(window).width();
 
@@ -93,7 +95,7 @@ Client.prototype.drawPlayers = function() {
   
   for(var i = 0; i < this.game.numPlayers; i++) {
     this.ctx.beginPath();
-    this.ctx.rect(this.canvas.width*Math.random(), this.canvas.height*Math.random(), 20, 20);
+    this.ctx.rect(this.game.players[i].position.x, this.game.players[i].position.y, 20, 20);
     this.ctx.fillStyle = 'rgba(255,125,125,1)';
     this.ctx.fill();
   }

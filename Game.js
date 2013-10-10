@@ -1,13 +1,13 @@
 var Player = require("./Player");
 
-function Game() {
+function Game(width, height) {
   // Need to make some of these vars private
 
   this.numPlayers = 0;
   this.players = [];
   this.playArea = {
-    width: 800,
-    height: 400
+    width: width,
+    height: height
   };
 }
 
@@ -32,7 +32,7 @@ Game.prototype.getPlayArea = function() {
 };
 
 Game.prototype.addPlayer = function(name) {
-  this.players[this.numPlayers] = new Player(name, this.numPlayers + 1);
+  this.players[this.numPlayers] = new Player(name, this.numPlayers + 1, this.playArea.width, this.playArea.height);
   this.numPlayers++;
 };
 

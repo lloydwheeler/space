@@ -3,7 +3,7 @@ function Player(username, playerID) {
   this.username = username;
   this.position = {
     x: 10,
-    y: 10
+    y: 100
   }
 }
 

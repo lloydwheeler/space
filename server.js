@@ -9,14 +9,14 @@ var io      = require('socket.io').listen(server, { log: false });
 var socket;
 
 var gameSettings = {
-  pitchWidth: 800,
-  pitchLength: 400,
+  pitchWidth: 1200,
+  pitchLength: 800,
   playerSize: 20,
   ballSize: 10
 }
 
 function init() {
-  var game = new Game();
+  var game = new Game(gameSettings.pitchWidth, gameSettings.pitchLength);
   io.sockets.on('connection', function (socket) {
     io.sockets.emit('newConnection', game);
     socket.on('message', function (data) {
