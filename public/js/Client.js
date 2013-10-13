@@ -1,63 +1,65 @@
 function Client(server) {
   this.socket = io.connect(server);
-  this.game;
-  this.player;
+  this.player = null;
+  this.players = [];
   this.stars = [];
   this.initListeners();
   this.initGame();
 }
 
 Client.prototype.initGame = function() {
+
+  var height = $(window).height();
+  var width = $(window).width();
+
+  /* Create a new canvas object */
   this.canvas = $('#canvas').get(0);
   this.ctx = this.canvas.getContext('2d');
-  this.resizeCanvas();
-}
+  this.createStars();
+  this.draw();
+};
 
 Client.prototype.initListeners = function() {
 
+  /* Allow for reference to client object from within socket */
   var self = this;
 
-  this.socket.on('newConnection', function(gameState) {
-    self.updateGameState(gameState);
+  this.socket.on('new player', function(data) {
+    var player = new Player(data.id, data.x, data.y);
+    self.players.push(player);
+    self.draw();  
   });
-  this.socket.on('newPlayer', function(data) {
-    self.player = data[1];
-    self.updateGameState(data[0]);
-    self.drawPlayers();
-  });
-  this.socket.on('updateGameState', function(gamestate) {
-    self.updateGameState(gamestate);
-  });
-  this.socket.on('newGameState', function(gamestate) {
-    self.updateGameState(gamestate);
-    // console.log(self.getGameState());
-  });
-}
 
-Client.prototype.updateGameState = function(game) {
-  this.game = game;
-  // console.log(this.game);
-  // console.log(this.player);
-}
+  this.socket.on('update player', function(player) {
+    var temp = self.findPlayerById(player.id);
+    temp.position.x = player.position.x;
+    temp.position.y = player.position.y;
+    self.draw();
+  });
+};
 
-Client.prototype.getGameState = function() {
-  return this.game;
-}
+Client.prototype.initControls = function() {
+  $(window).on("keydown", {player: this.player, self: this}, this.keyDown);
+};
 
 Client.prototype.addPlayer = function(username) {
-  this.socket.emit("addPlayer", username);
-  this.player = new Player(username);
-}
+  if (this.player === null) {
+    this.player = new Player(10, 100, 100);
+    this.socket.emit("add player", this.player.position.x, this.player.position.y);
+    this.initControls();
+  }
+};
 
-Client.prototype.updatePlayerPosition = function(player) {
-  this.socket.emit("updatePlayerPosition", this.player)
-}
+Client.prototype.findPlayerById = function(id) {
+  var i = 0, numPlayers = this.players.length;
+  for(; i < numPlayers; i++) {
+    if (this.players[i].id === id) {
+      return this.players[i];
+    }
+  }
+};
 
-Client.prototype.removePlayer = function() {
-  this.socket.emit("remove local player", this.player.username);
-}
-
-Client.prototype.resizeCanvas = function() {
+Client.prototype.draw = function() {
   var height = $(window).height();
   var width = $(window).width();
 
@@ -69,45 +71,60 @@ Client.prototype.resizeCanvas = function() {
   this.ctx.fillStyle = "#2A2C33";
   this.ctx.fillRect(0,0,width,height);
 
+  
+  this.drawStars();
+  this.drawPlayers();
+};
 
+Client.prototype.drawPlayers = function() {
+  var i = 0, numPlayers = this.players.length;
+  for(; i < numPlayers; i++) {
+    this.players[i].draw(this.ctx);
+  }
+};
+
+Client.prototype.createStars = function() {
   for(var i = 0; i < 25; i++) {
     var star = new Star(this.canvas.width*Math.random(), this.canvas.height*Math.random());
     star.draw(this.ctx);
     this.stars.push(star);
   }
-
-}
-
-Client.prototype.drawPlayers = function() {
-
-  console.log(this.game.players);
-
-  var height = $(window).height();
-  var width = $(window).width();
-
-  this.ctx.clearRect(0,0,width,height);
-
-  this.canvas.width = width;
-  this.canvas.height = height;
-
-  this.ctx.fillStyle = "#2A2C33";
-  this.ctx.fillRect(0,0,width,height);
-  
-  for(var i = 0; i < this.game.numPlayers; i++) {
-    this.ctx.beginPath();
-    this.ctx.rect(this.game.players[i].position.x, this.game.players[i].position.y, 20, 20);
-    this.ctx.fillStyle = 'rgba(255,125,125,1)';
-    this.ctx.fill();
-  }
-
-  this.drawStars();
-}
+};
 
 Client.prototype.drawStars = function() {
   var i = 0, numStars = this.stars.length;
   for(; i < numStars; i++) {
     this.stars[i].draw(this.ctx);
   }
-}
+};
+
+Client.prototype.keyDown = function(e) {
+  var self = e.data.self;
+  var direction = e.keyCode;
+
+  if (e.data.self.player !== null) {
+    switch(direction) {
+      case 87:
+        self.player.position.y = self.player.position.y - 15;
+        // console.log("going up");
+        break;
+      case 65:
+        self.player.position.x = self.player.position.x - 15;
+        // console.log("going left");
+        break;
+      case 83:
+        self.player.position.y = self.player.position.y + 15;
+        // console.log("going down");
+        break;
+      case 68:
+        self.player.position.x = self.player.position.x + 15;
+        // console.log("going right");
+        break;
+      default:
+        break;
+    }
+    self.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y} );
+  }
+};
 
   
