@@ -1,3 +1,8 @@
+var requestAnimationFrame = window.requestAnimationFrame || 
+                            window.mozRequestAnimationFrame || 
+                            window.webkitRequestAnimationFrame || 
+                            window.msRequestAnimationFrame;
+
 function Client(server) {
   this.socket = io.connect(server);
   this.player = null;
@@ -15,9 +20,12 @@ Client.prototype.initGame = function() {
 
   /* Create a new canvas object */
   this.canvas = $('#canvas').get(0);
+  this.canvas.width = width;
+  this.canvas.height = height;
   this.ctx = this.canvas.getContext('2d');
   this.createStars();
-  this.draw();
+  // this.draw();
+  requestAnimationFrame(this.draw.bind(this));
 };
 
 Client.prototype.initListeners = function() {
@@ -33,14 +41,14 @@ Client.prototype.initListeners = function() {
       var player = new Player(data.id, data.x, data.y);
       self.players.push(player);
     }
-    self.draw();  
+    // self.draw();  
   });
 
   this.socket.on('update player', function(player) {
     var temp = self.findPlayerById(player.id);
     temp.position.x = player.position.x;
     temp.position.y = player.position.y;
-    self.draw();
+    // self.draw();
   });
 };
 
@@ -53,7 +61,6 @@ Client.prototype.addPlayer = function(username) {
     this.player = new Player(10, 100, 100);
     this.socket.emit("add player", this.player.position.x, this.player.position.y);
     this.initControls();
-    // this.draw();
   }
 };
 
@@ -89,6 +96,7 @@ Client.prototype.draw = function() {
   
   this.drawStars();
   this.drawPlayers();
+  requestAnimationFrame(this.draw.bind(this));
 };
 
 Client.prototype.drawPlayers = function() {
@@ -120,25 +128,25 @@ Client.prototype.keyDown = function(e) {
   if (e.data.self.player !== null) {
     switch(direction) {
       case 87:
-        self.player.position.y = self.player.position.y - 15;
+        self.player.position.y = self.player.position.y - 50;
         // console.log("going up");
         break;
       case 65:
-        self.player.position.x = self.player.position.x - 15;
+        self.player.position.x = self.player.position.x - 50;
         // console.log("going left");
         break;
       case 83:
-        self.player.position.y = self.player.position.y + 15;
+        self.player.position.y = self.player.position.y + 50;
         // console.log("going down");
         break;
       case 68:
-        self.player.position.x = self.player.position.x + 15;
+        self.player.position.x = self.player.position.x + 50;
         // console.log("going right");
         break;
       default:
         break;
     }
-    self.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y} );
+    self.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
   }
 };
 
