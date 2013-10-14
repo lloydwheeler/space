@@ -3,6 +3,7 @@ function Client(server) {
   this.player = null;
   this.players = [];
   this.stars = [];
+  this.gameStarted = false;
   this.initListeners();
   this.initGame();
 }
@@ -25,8 +26,13 @@ Client.prototype.initListeners = function() {
   var self = this;
 
   this.socket.on('new player', function(data) {
-    var player = new Player(data.id, data.x, data.y);
-    self.players.push(player);
+    if (!self.gameStarted) {
+      self.initPlayers(data.players);
+      self.gameStarted = true;
+    } else { 
+      var player = new Player(data.id, data.x, data.y);
+      self.players.push(player);
+    }
     self.draw();  
   });
 
@@ -47,6 +53,7 @@ Client.prototype.addPlayer = function(username) {
     this.player = new Player(10, 100, 100);
     this.socket.emit("add player", this.player.position.x, this.player.position.y);
     this.initControls();
+    // this.draw();
   }
 };
 
@@ -56,6 +63,14 @@ Client.prototype.findPlayerById = function(id) {
     if (this.players[i].id === id) {
       return this.players[i];
     }
+  }
+};
+
+Client.prototype.initPlayers = function(players) {
+  var i = 0, numPlayers = players.length, player;
+  for(; i < numPlayers; i++) {
+    player = players[i];
+    this.players.push(new Player(player.id, player.position.x, player.position.y));
   }
 };
 
