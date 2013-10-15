@@ -45,6 +45,7 @@ Game.prototype.findPlayerById = function(id) {
     if (this.players[i].id === id)
       return this.players[i];
   }
+  return false;
 }
 
 // Game.prototype.removePlayer = function(playerID) {
