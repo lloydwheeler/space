@@ -161,27 +161,33 @@ Client.prototype.movePlayer = function() {
 
   if (this.keys[38]) {
     // up
-    console.log(-this.player.speed);
-    if(this.player.velocity.y > -this.player.speed)
-      this.player.velocity.y--;
+    if(this.player.velocity.y > -5)
+      this.player.velocity.y -= 1;
   }
 
   if (this.keys[40]) {
     // down
-    this.player.position.y += this.player.velocity.y;
+    // this.player.position.y += this.player.velocity.y;
+    if(this.player.velocity.y < 5)
+      this.player.velocity.y += 1;
   }
 
   if (this.keys[39]) {
     // left
-    this.player.position.x += this.player.velocity.x;
+    // this.player.position.x += this.player.velocity.x;
+    if(this.player.velocity.x <5)
+      this.player.velocity.x += 1;
   }
 
   if (this.keys[37]) {
     // right
-    this.player.position.x -= this.player.velocity.x;
+    // this.player.position.x -= this.player.velocity.x;
+    if(this.player.velocity.x > -5)
+      this.player.velocity.x -= 1;
   }
 
   this.player.velocity.y *= this.player.friction;
+  this.player.velocity.x *= this.player.friction;
   this.player.position.y += this.player.velocity.y;
   this.player.position.x += this.player.velocity.x;
 

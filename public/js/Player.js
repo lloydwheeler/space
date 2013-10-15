@@ -4,7 +4,7 @@ function Player(id, x, y) {
     x: x,
     y: y
   }
-  this.friction = .25;
+  this.friction = .8;
   this.speed = 122;
   this.velocity = {
     y: 0,
