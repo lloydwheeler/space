@@ -4,24 +4,13 @@ function Player(id, x, y) {
     x: x,
     y: y
   }
+  this.friction = .25;
+  this.speed = 122;
+  this.velocity = {
+    y: 0,
+    x: 0
+  }
 }
-
-// Player.prototype.getID = function() {
-//   return this.id;
-// }
-
-// Player.prototype.setID = function(newID) {
-//   this.id = newID;
-// }
-
-// Player.prototype.getPosition = function() {
-//   return this.position;
-// }
-
-// Player.prototype.setPosition = function(x, y) {
-//   this.position.x = x;
-//   this.position.y = y;
-// }
 
 /* Draw player */
 

@@ -38,9 +38,11 @@ function init() {
 
     socket.on('update player', function(data) {
       var player = game.findPlayerById(clientID);
-      player.position.x = data.x;
-      player.position.y = data.y;
-      io.sockets.emit('update player', player);
+      if(player) {
+        player.position.x = data.x;
+        player.position.y = data.y;
+        io.sockets.emit('update player', player);
+      }
     });
   });
 

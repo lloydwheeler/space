@@ -11,6 +11,7 @@ function Client(server) {
   this.gameStarted = false;
   this.initListeners();
   this.initGame();
+  this.keys = [];
 }
 
 Client.prototype.initGame = function() {
@@ -53,7 +54,15 @@ Client.prototype.initListeners = function() {
 };
 
 Client.prototype.initControls = function() {
-  $(window).on("keydown", {player: this.player, self: this}, this.keyDown);
+  var self = this;
+
+  $(window).on("keydown", function(e) {
+    self.keys[e.keyCode] = true;
+  });
+  
+  $(window).on("keyup", function(e) {
+    self.keys[e.keyCode] = false;
+  });
 };
 
 Client.prototype.addPlayer = function(username) {
@@ -61,6 +70,7 @@ Client.prototype.addPlayer = function(username) {
     this.player = new Player(10, 100, 100);
     this.socket.emit("add player", this.player.position.x, this.player.position.y);
     this.initControls();
+    this.movePlayer();
   }
 };
 
@@ -93,7 +103,10 @@ Client.prototype.draw = function() {
   this.ctx.fillStyle = "#2A2C33";
   this.ctx.fillRect(0,0,width,height);
 
-  
+  if (this.player !== null) {
+    this.movePlayer();
+  }
+
   this.drawStars();
   this.drawPlayers();
   requestAnimationFrame(this.draw.bind(this));
@@ -121,33 +134,59 @@ Client.prototype.drawStars = function() {
   }
 };
 
-Client.prototype.keyDown = function(e) {
-  var self = e.data.self;
-  var direction = e.keyCode;
+Client.prototype.movePlayer = function() {
+  var self = this;
 
-  if (e.data.self.player !== null) {
-    switch(direction) {
-      case 87:
-        self.player.position.y = self.player.position.y - 50;
-        // console.log("going up");
-        break;
-      case 65:
-        self.player.position.x = self.player.position.x - 50;
-        // console.log("going left");
-        break;
-      case 83:
-        self.player.position.y = self.player.position.y + 50;
-        // console.log("going down");
-        break;
-      case 68:
-        self.player.position.x = self.player.position.x + 50;
-        // console.log("going right");
-        break;
-      default:
-        break;
-    }
-    self.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
+  // if (this.keys[38]) {
+  //   // up
+  //   this.player.position.y -= this.player.velocity.y;
+  // }
+
+  // if (this.keys[40]) {
+  //   // down
+  //   this.player.position.y += this.player.velocity.y;
+  // }
+
+  // if (this.keys[39]) {
+  //   // left
+  //   this.player.position.x += this.player.velocity.x;
+  // }
+
+  // if (this.keys[37]) {
+  //   // right
+  //   this.player.position.x -= this.player.velocity.x;
+  // }
+
+  // http://jsfiddle.net/loktar/dMYvG/
+
+  if (this.keys[38]) {
+    // up
+    console.log(-this.player.speed);
+    if(this.player.velocity.y > -this.player.speed)
+      this.player.velocity.y--;
   }
-};
+
+  if (this.keys[40]) {
+    // down
+    this.player.position.y += this.player.velocity.y;
+  }
+
+  if (this.keys[39]) {
+    // left
+    this.player.position.x += this.player.velocity.x;
+  }
+
+  if (this.keys[37]) {
+    // right
+    this.player.position.x -= this.player.velocity.x;
+  }
+
+  this.player.velocity.y *= this.player.friction;
+  this.player.position.y += this.player.velocity.y;
+  this.player.position.x += this.player.velocity.x;
+
+  this.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
+}
+
 
   
