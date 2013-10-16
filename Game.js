@@ -48,27 +48,4 @@ Game.prototype.findPlayerById = function(id) {
   return false;
 }
 
-// Game.prototype.removePlayer = function(playerID) {
-//   this.players.removeElement(playerID);
-// };
-
-// Game.prototype.removePlayerByUsername = function(username) {
-//   var i;
-
-//   console.log("searching for " + username);
-
-//   for(i = 0; i < this.players.length; i++) {
-//     console.log("searching");
-//     if (this.players[i].username === username) {
-//       console.log("found!");
-//     }
-//   }
-// };
-
-// Array.prototype.removeElement = function(id) {
-//   if(this.indexOf(id) != -1) {
-//     this.splice(this.indexOf(value), 1);
-//   }
-// }
-
 module.exports = Game;

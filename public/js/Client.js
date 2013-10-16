@@ -34,14 +34,17 @@ Client.prototype.initListeners = function() {
   /* Allow for reference to client object from within socket */
   var self = this;
 
+  this.socket.on('get game state', function(data) {
+    self.initPlayers(data.players);
+    self.gameStarted = true; 
+  });
+
   this.socket.on('new player', function(data) {
-    if (!self.gameStarted) {
-      self.initPlayers(data.players);
-      self.gameStarted = true;
-    } else { 
+  
+     
       var player = new Player(data.id, data.x, data.y);
       self.players.push(player);
-    }
+    
     // self.draw();  
   });
 

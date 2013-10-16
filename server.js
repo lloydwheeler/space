@@ -33,7 +33,8 @@ function init() {
       game.addPlayer(clientID, x, y);
 
       /* Emit a new player message to all clients */
-      io.sockets.emit('new player', {id: clientID, x: x, y: y, players: game.players} );
+      io.sockets.socket(clientID).emit('get game state', { players: game.players });
+      io.sockets.emit('new player', {id: clientID, x: x, y: y} );
     });
 
     socket.on('update player', function(data) {
