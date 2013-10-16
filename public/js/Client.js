@@ -25,7 +25,7 @@ Client.prototype.initGame = function() {
 
 
   this.initListeners();
-  this.createStars();
+  this.initStars();
   requestAnimationFrame(this.draw.bind(this));
 };
 
@@ -75,6 +75,14 @@ Client.prototype.initControls = function() {
   });
 };
 
+Client.prototype.initPlayers = function(players) {
+  var i = 0, numPlayers = players.length, player;
+  for(; i < numPlayers; i++) {
+    player = players[i];
+    this.players.push(new Player(player.id, player.position.x, player.position.y));
+  }
+};
+
 Client.prototype.addPlayer = function(username) {
   if (this.player === null) {
     this.player = new Player(10, (this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
@@ -89,14 +97,6 @@ Client.prototype.findPlayerById = function(id) {
     if (this.players[i].id === id) {
       return this.players[i];
     }
-  }
-};
-
-Client.prototype.initPlayers = function(players) {
-  var i = 0, numPlayers = players.length, player;
-  for(; i < numPlayers; i++) {
-    player = players[i];
-    this.players.push(new Player(player.id, player.position.x, player.position.y));
   }
 };
 
@@ -128,7 +128,7 @@ Client.prototype.drawPlayers = function() {
   }
 };
 
-Client.prototype.createStars = function() {
+Client.prototype.initStars = function() {
   for(var i = 0; i < 40; i++) {
     var star = new Star(this.canvas.width*Math.random(), this.canvas.height*Math.random());
     star.draw(this.ctx, {x:0, y:0});
