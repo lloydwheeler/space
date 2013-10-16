@@ -4,28 +4,28 @@ var requestAnimationFrame = window.requestAnimationFrame ||
                             window.msRequestAnimationFrame;
 
 function Client(server) {
-  this.socket = io.connect(server);
+  this.gameStarted = false;
+  this.keys = [];
   this.player = null;
   this.players = [];
   this.stars = [];
-  this.gameStarted = false;
-  this.initListeners();
+  this.socket = io.connect(server);
+
   this.initGame();
-  this.keys = [];
 }
 
 Client.prototype.initGame = function() {
 
   var height = $(window).height();
   var width = $(window).width();
-
-  /* Create a new canvas object */
   this.canvas = $('#canvas').get(0);
   this.canvas.width = width;
   this.canvas.height = height;
   this.ctx = this.canvas.getContext('2d');
+
+
+  this.initListeners();
   this.createStars();
-  // this.draw();
   requestAnimationFrame(this.draw.bind(this));
 };
 
@@ -34,25 +34,32 @@ Client.prototype.initListeners = function() {
   /* Allow for reference to client object from within socket */
   var self = this;
 
-  this.socket.on('get game state', function(data) {
+  /* Get the existing game state on connection */
+  this.socket.on('game state', function(data) {
     self.initPlayers(data.players);
     self.gameStarted = true; 
   });
 
+  /* Add a new player to the existing game */
   this.socket.on('new player', function(data) {
-  
-     
+    /* If the player doesn't already exist */
+    if (!self.findPlayerById(player.id)) {
       var player = new Player(data.id, data.x, data.y);
       self.players.push(player);
-    
-    // self.draw();  
+    }
   });
 
+  /* Update a player's state */
   this.socket.on('update player', function(player) {
     var temp = self.findPlayerById(player.id);
     temp.position.x = player.position.x;
     temp.position.y = player.position.y;
-    // self.draw();
+  });
+
+  /* Remove a player */
+  this.socket.on('remove player', function(player) {
+    var temp = self.findPlayerById(player.id);
+    /* remove this player */
   });
 };
 
@@ -73,7 +80,6 @@ Client.prototype.addPlayer = function(username) {
     this.player = new Player(10, (this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
     this.socket.emit("add player", this.player.position.x, this.player.position.y);
     this.initControls();
-    this.movePlayer();
   }
 };
 
@@ -125,7 +131,7 @@ Client.prototype.drawPlayers = function() {
 Client.prototype.createStars = function() {
   for(var i = 0; i < 40; i++) {
     var star = new Star(this.canvas.width*Math.random(), this.canvas.height*Math.random());
-    star.draw(this.ctx, {x: 0, y: 0});
+    star.draw(this.ctx, {x: this.canvas.width/2, y: this.canvas.height/2});
     this.stars.push(star);
   }
 };
