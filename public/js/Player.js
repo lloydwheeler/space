@@ -1,14 +1,18 @@
 function Player(id, x, y) {
   this.id = id;
+  this.friction = .9;
+  this.maxVelocity = 120;
   this.position = {
     x: x,
     y: y
   }
-  this.friction = .8;
-  this.speed = 122;
   this.velocity = {
-    y: 0,
-    x: 0
+    x: 0,
+    y: 0
+  }
+  this.oldPosition = {
+    x: 0,
+    y: 0
   }
 }
 

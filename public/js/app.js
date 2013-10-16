@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  var server = "http://192.168.1.83:8000/";
+  var server = "http://192.168.128.65:8000/";
   var client = new Client(server);
   var ingame = false;
 
@@ -13,7 +13,5 @@ $(document).ready(function() {
     // e.preventDefault();
     // client.removePlayer(client.player.username);
   });
-
-
 
 });

@@ -122,7 +122,7 @@ Client.prototype.drawPlayers = function() {
 Client.prototype.createStars = function() {
   for(var i = 0; i < 25; i++) {
     var star = new Star(this.canvas.width*Math.random(), this.canvas.height*Math.random());
-    star.draw(this.ctx);
+    star.draw(this.ctx, {x: 0, y: 0});
     this.stars.push(star);
   }
 };
@@ -130,68 +130,66 @@ Client.prototype.createStars = function() {
 Client.prototype.drawStars = function() {
   var i = 0, numStars = this.stars.length;
   for(; i < numStars; i++) {
-    this.stars[i].draw(this.ctx);
+    if(this.player)
+      this.stars[i].draw(this.ctx, this.positionDelta(this.player.oldPosition, this.player.position));
   }
 };
 
 Client.prototype.movePlayer = function() {
   var self = this;
 
-  // if (this.keys[38]) {
-  //   // up
-  //   this.player.position.y -= this.player.velocity.y;
-  // }
-
-  // if (this.keys[40]) {
-  //   // down
-  //   this.player.position.y += this.player.velocity.y;
-  // }
-
-  // if (this.keys[39]) {
-  //   // left
-  //   this.player.position.x += this.player.velocity.x;
-  // }
-
-  // if (this.keys[37]) {
-  //   // right
-  //   this.player.position.x -= this.player.velocity.x;
-  // }
-
-  // http://jsfiddle.net/loktar/dMYvG/
-
   if (this.keys[38]) {
     // up
-    if(this.player.velocity.y > -5)
+    if(this.player.velocity.y > -this.player.maxVelocity)
       this.player.velocity.y -= 1;
   }
 
   if (this.keys[40]) {
     // down
-    // this.player.position.y += this.player.velocity.y;
-    if(this.player.velocity.y < 5)
+    if(this.player.velocity.y < this.player.maxVelocity)
       this.player.velocity.y += 1;
   }
 
   if (this.keys[39]) {
     // left
-    // this.player.position.x += this.player.velocity.x;
-    if(this.player.velocity.x <5)
+    if(this.player.velocity.x < this.player.maxVelocity)
       this.player.velocity.x += 1;
   }
 
   if (this.keys[37]) {
     // right
-    // this.player.position.x -= this.player.velocity.x;
-    if(this.player.velocity.x > -5)
+    if(this.player.velocity.x > -this.player.maxVelocity)
       this.player.velocity.x -= 1;
   }
 
+  // this.player.oldPosition.y = this.player.position.y;
+  // this.player.oldPosition.x = this.player.position.x;
   this.player.velocity.y *= this.player.friction;
   this.player.velocity.x *= this.player.friction;
   this.player.position.y += this.player.velocity.y;
   this.player.position.x += this.player.velocity.x;
 
+  if(this.player.position.x < 0) {
+    this.player.position.x = 0;
+  }
+
+  if(this.player.position.x > this.canvas.width - 20) {
+    this.player.position.x = this.canvas.width - 20;
+  }
+
+  if(this.player.position.y < 0) {
+    this.player.position.y = 0;
+  }
+
+  if(this.player.position.y > this.canvas.height - 20) {
+    this.player.position.y = this.canvas.height - 20;
+  }
+
   this.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
+}
+
+Client.prototype.positionDelta = function(before, after) {
+  return {x: after.x - before.x, y: after.y - before.y};
 }
 
 
