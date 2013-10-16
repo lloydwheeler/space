@@ -41,10 +41,10 @@ Client.prototype.initListeners = function() {
   });
 
   /* Add a new player to the existing game */
-  this.socket.on('new player', function(data) {
+  this.socket.on('new player', function(player) {
     /* If the player doesn't already exist */
     if (!self.findPlayerById(player.id)) {
-      var player = new Player(data.id, data.x, data.y);
+      var player = new Player(player.id, player.x, player.y);
       self.players.push(player);
     }
   });
@@ -131,7 +131,7 @@ Client.prototype.drawPlayers = function() {
 Client.prototype.createStars = function() {
   for(var i = 0; i < 40; i++) {
     var star = new Star(this.canvas.width*Math.random(), this.canvas.height*Math.random());
-    star.draw(this.ctx, {x: this.canvas.width/2, y: this.canvas.height/2});
+    star.draw(this.ctx, {x:0, y:0});
     this.stars.push(star);
   }
 };
@@ -139,8 +139,9 @@ Client.prototype.createStars = function() {
 Client.prototype.drawStars = function() {
   var i = 0, numStars = this.stars.length;
   for(; i < numStars; i++) {
-    if(this.player)
+    if(this.player) {
       this.stars[i].draw(this.ctx, this.positionDelta(this.player.startPosition, this.player.position));
+    }
   }
 };
 
@@ -171,36 +172,43 @@ Client.prototype.movePlayer = function() {
       this.player.velocity.x -= 1;
   }
 
-  // this.player.oldPosition.y = this.player.position.y;
-  // this.player.oldPosition.x = this.player.position.x;
+  /* Gradually reduce velocity due to friction */
   this.player.velocity.y *= this.player.friction;
   this.player.velocity.x *= this.player.friction;
+
+  /* Update the player's position */
   this.player.position.y += this.player.velocity.y;
   this.player.position.x += this.player.velocity.x;
 
-  if(this.player.position.x < 0) {
-    this.player.position.x = 0;
-  }
+  /* Stop the player from leaving the game area */
+  this.player.position = this.checkForBoundary(this.player.position);
 
-  if(this.player.position.x > this.canvas.width - 20) {
-    this.player.position.x = this.canvas.width - 20;
-  }
-
-  if(this.player.position.y < 0) {
-    this.player.position.y = 0;
-  }
-
-  if(this.player.position.y > this.canvas.height - 20) {
-    this.player.position.y = this.canvas.height - 20;
-  }
-
-  // console.log(this.positionDelta(this.player.startPosition, this.player.position));
+  
   this.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
+}
+
+Client.prototype.checkForBoundary = function(playerPosition) {
+  var position = {x: playerPosition.x, y: playerPosition.y};
+
+  if(playerPosition.x < 0) {
+    position.x = 0;
+  }
+  if(playerPosition.x > this.canvas.width - 20) {
+    position.x = this.canvas.width - 20;
+  }
+  if(playerPosition.y < 0) {
+    position.y = 0;
+  }
+  if(playerPosition.y > this.canvas.height - 20) {
+    position.y = this.canvas.height - 20;
+  }
+
+  return position;
 }
 
 Client.prototype.positionDelta = function(before, after) {
   return {x: after.x - before.x, y: after.y - before.y};
-}
+};
 
 
   
