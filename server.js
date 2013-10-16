@@ -23,17 +23,19 @@ function init() {
   /* When a client connects to the server */
   io.sockets.on('connection', function (socket) {
 
-    // console.log(socket.id);
+    /* Get the ID of the requesting client */
     var clientID = socket.id;
 
     /* When a new player message is received from a client... */
     socket.on('add player', function(x, y) {
 
       /* ...add a new player to the game */
-      game.addPlayer(clientID, x, y);
+      game.addPlayer(clientID, x, y, new Date().getTime());
+
+      /* Send exisitng game state to new client */
+      io.sockets.socket(clientID).emit('game state', { players: game.players });
 
       /* Emit a new player message to all clients */
-      io.sockets.socket(clientID).emit('get game state', { players: game.players });
       io.sockets.emit('new player', {id: clientID, x: x, y: y} );
     });
 
@@ -45,7 +47,13 @@ function init() {
         io.sockets.emit('update player', player);
       }
     });
+
   });
+
+
+  setInterval(function() {
+    console.log("polling for timeouts");
+  }, 10000);
 
   /* Point to public directories for clients */
   app.use(express.static(__dirname + '/public'));
