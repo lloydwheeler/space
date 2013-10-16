@@ -10,9 +10,9 @@ function Player(id, x, y) {
     x: 0,
     y: 0
   }
-  this.oldPosition = {
-    x: 0,
-    y: 0
+  this.startPosition = {
+    x: x,
+    y: y
   }
 }
 

@@ -67,7 +67,7 @@ Client.prototype.initControls = function() {
 
 Client.prototype.addPlayer = function(username) {
   if (this.player === null) {
-    this.player = new Player(10, 100, 100);
+    this.player = new Player(10, (this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
     this.socket.emit("add player", this.player.position.x, this.player.position.y);
     this.initControls();
     this.movePlayer();
@@ -120,7 +120,7 @@ Client.prototype.drawPlayers = function() {
 };
 
 Client.prototype.createStars = function() {
-  for(var i = 0; i < 25; i++) {
+  for(var i = 0; i < 40; i++) {
     var star = new Star(this.canvas.width*Math.random(), this.canvas.height*Math.random());
     star.draw(this.ctx, {x: 0, y: 0});
     this.stars.push(star);
@@ -131,7 +131,7 @@ Client.prototype.drawStars = function() {
   var i = 0, numStars = this.stars.length;
   for(; i < numStars; i++) {
     if(this.player)
-      this.stars[i].draw(this.ctx, this.positionDelta(this.player.oldPosition, this.player.position));
+      this.stars[i].draw(this.ctx, this.positionDelta(this.player.startPosition, this.player.position));
   }
 };
 
@@ -185,6 +185,7 @@ Client.prototype.movePlayer = function() {
     this.player.position.y = this.canvas.height - 20;
   }
 
+  // console.log(this.positionDelta(this.player.startPosition, this.player.position));
   this.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
 }
 
