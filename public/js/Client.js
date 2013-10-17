@@ -22,6 +22,8 @@ Client.prototype.initGame = function() {
   this.canvas.width = width;
   this.canvas.height = height;
   this.ctx = this.canvas.getContext('2d');
+  this.ball = new Ball((this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
+  this.ball.draw(this.ctx);
 
 
   this.initListeners();
@@ -66,16 +68,21 @@ Client.prototype.initListeners = function() {
 Client.prototype.initControls = function() {
   var self = this;
 
+  /* On keydown set movement in corresponding direction to true */
   $(window).on("keydown", function(e) {
     self.keys[e.keyCode] = true;
   });
   
+  /* On keyup set movement in corresponding direction to false */
   $(window).on("keyup", function(e) {
     self.keys[e.keyCode] = false;
   });
 };
 
 Client.prototype.initPlayers = function(players) {
+
+  /* Initiliase all other players on the server */
+
   var i = 0, numPlayers = players.length, player;
   for(; i < numPlayers; i++) {
     player = players[i];
@@ -84,6 +91,9 @@ Client.prototype.initPlayers = function(players) {
 };
 
 Client.prototype.addPlayer = function(username) {
+
+  /* Add a new player to the game */
+
   if (this.player === null) {
     this.player = new Player(10, (this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
     this.socket.emit("add player", this.player.position.x, this.player.position.y);
@@ -92,6 +102,9 @@ Client.prototype.addPlayer = function(username) {
 };
 
 Client.prototype.findPlayerById = function(id) {
+
+  /* Find a player by a given ID */
+
   var i = 0, numPlayers = this.players.length;
   for(; i < numPlayers; i++) {
     if (this.players[i].id === id) {
@@ -118,6 +131,7 @@ Client.prototype.draw = function() {
 
   this.drawStars();
   this.drawPlayers();
+  this.ball.draw(this.ctx);
   requestAnimationFrame(this.draw.bind(this));
 };
 
@@ -176,6 +190,9 @@ Client.prototype.movePlayer = function() {
   this.player.velocity.y *= this.player.friction;
   this.player.velocity.x *= this.player.friction;
 
+  /* Check for a collision */
+  this.checkForCollision();
+
   /* Update the player's position */
   this.player.position.y += this.player.velocity.y;
   this.player.position.x += this.player.velocity.x;
@@ -185,6 +202,10 @@ Client.prototype.movePlayer = function() {
 
   
   this.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
+}
+
+Client.prototype.checkForCollision = function(player) {
+  /* Check for collision with all other players */
 }
 
 Client.prototype.checkForBoundary = function(playerPosition) {

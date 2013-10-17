@@ -1,5 +1,4 @@
-var Game   = require("./Game");
-
+var Game    = require("./Game");
 var express = require('express');
 var app     = express();
 var server  = app.listen(8000);
