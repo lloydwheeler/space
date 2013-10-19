@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  var server = "http://192.168.128.69:8000/";
+  var server = "http://192.168.1.83:8000/";
   var client = new Client(server);
   var ingame = false;
 

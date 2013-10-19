@@ -22,8 +22,8 @@ Client.prototype.initGame = function() {
   this.canvas.width = width;
   this.canvas.height = height;
   this.ctx = this.canvas.getContext('2d');
-  this.ball = new Ball((this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
-  this.ball.draw(this.ctx);
+  // this.ball = new Ball((this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
+  // this.ball.draw(this.ctx);
 
 
   this.initListeners();
@@ -67,6 +67,10 @@ Client.prototype.initListeners = function() {
 
 Client.prototype.initControls = function() {
   var self = this;
+
+  
+
+
 
   /* On keydown set movement in corresponding direction to true */
   $(window).on("keydown", function(e) {
@@ -131,7 +135,7 @@ Client.prototype.draw = function() {
 
   this.drawStars();
   this.drawPlayers();
-  this.ball.draw(this.ctx);
+  // this.ball.draw(this.ctx);
   requestAnimationFrame(this.draw.bind(this));
 };
 
@@ -162,29 +166,64 @@ Client.prototype.drawStars = function() {
 Client.prototype.movePlayer = function() {
   var self = this;
 
-  if (this.keys[38]) {
+  /* Check to see if a controller is plugged in */
+  var controllers = navigator.webkitGetGamepads()
+  // console.dir(controllers);
+  this.controller = controllers[0];
+  this.inputs;
+
+  // console.log(this.controller.buttons[7])
+
+  this.player.maxVelocity.x = Math.abs(this.controller.axes[0]*7);
+  this.player.maxVelocity.y = Math.abs(this.controller.axes[1]*7);
+
+  if (this.controller.axes[1] < -.15) {
     // up
-    if(this.player.velocity.y > -this.player.maxVelocity)
+    if(this.player.velocity.y > -this.player.maxVelocity.y)
       this.player.velocity.y -= 1;
   }
 
-  if (this.keys[40]) {
+  if (this.controller.axes[1] > .15) {
     // down
-    if(this.player.velocity.y < this.player.maxVelocity)
+    if(this.player.velocity.y < this.player.maxVelocity.y)
       this.player.velocity.y += 1;
   }
 
-  if (this.keys[39]) {
+  if (this.controller.axes[0] > .15) {
     // left
-    if(this.player.velocity.x < this.player.maxVelocity)
+    if(this.player.velocity.x < this.player.maxVelocity.x)
       this.player.velocity.x += 1;
   }
 
-  if (this.keys[37]) {
+  if (this.controller.axes[0] < -.15) {
     // right
-    if(this.player.velocity.x > -this.player.maxVelocity)
+    if(this.player.velocity.x > -this.player.maxVelocity.x)
       this.player.velocity.x -= 1;
   }
+
+  // if (this.keys[38]) {
+  //   // up
+  //   if(this.player.velocity.y > -this.player.maxVelocity)
+  //     this.player.velocity.y -= 1;
+  // }
+
+  // if (this.keys[40]) {
+  //   // down
+  //   if(this.player.velocity.y < this.player.maxVelocity)
+  //     this.player.velocity.y += 1;
+  // }
+
+  // if (this.keys[39]) {
+  //   // left
+  //   if(this.player.velocity.x < this.player.maxVelocity)
+  //     this.player.velocity.x += 1;
+  // }
+
+  // if (this.keys[37]) {
+  //   // right
+  //   if(this.player.velocity.x > -this.player.maxVelocity)
+  //     this.player.velocity.x -= 1;
+  // }
 
   /* Gradually reduce velocity due to friction */
   this.player.velocity.y *= this.player.friction;
