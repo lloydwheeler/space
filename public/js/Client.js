@@ -166,40 +166,31 @@ Client.prototype.drawStars = function() {
 Client.prototype.movePlayer = function() {
   var self = this;
 
-  /* Check to see if a controller is plugged in */
-  var controllers = navigator.webkitGetGamepads()
-  // console.dir(controllers);
-  this.controller = controllers[0];
-  this.inputs;
+  /* Get gamepad */
+  var gamepads = navigator.webkitGetGamepads()
+  this.gamepad = gamepads[0];
 
-  // console.log(this.controller.buttons[7])
+  /* Set the stick deadzone */
+  this.gamepad.deadzone = .15;
 
-  this.player.maxVelocity.x = Math.abs(this.controller.axes[0]*7);
-  this.player.maxVelocity.y = Math.abs(this.controller.axes[1]*7);
-
-  if (this.controller.axes[1] < -.15) {
-    // up
-    if(this.player.velocity.y > -this.player.maxVelocity.y)
-      this.player.velocity.y -= 1;
+  /* If the analogue stick is outside the deadzone in X direction */
+  if(Math.abs(this.gamepad.axes[0]) > this.gamepad.deadzone) {
+    /* Set the player speed to match the input value */
+    this.player.velocity.x = this.gamepad.axes[0]*this.player.maxVelocity;
+  } else {
+    /* Else reduce the player's velocity due to friction */
+    this.player.velocity.x *= this.player.friction;
+  }
+  
+  /* If the analogue stick is outside the deadzone in Y direction */
+  if(Math.abs(this.gamepad.axes[1]) > this.gamepad.deadzone) {
+    /* Set the player speed to match the input value */
+    this.player.velocity.y = this.gamepad.axes[1]*this.player.maxVelocity;
+  } else {
+    /* Else reduce the player's velocity due to friction */
+    this.player.velocity.y *= this.player.friction;
   }
 
-  if (this.controller.axes[1] > .15) {
-    // down
-    if(this.player.velocity.y < this.player.maxVelocity.y)
-      this.player.velocity.y += 1;
-  }
-
-  if (this.controller.axes[0] > .15) {
-    // left
-    if(this.player.velocity.x < this.player.maxVelocity.x)
-      this.player.velocity.x += 1;
-  }
-
-  if (this.controller.axes[0] < -.15) {
-    // right
-    if(this.player.velocity.x > -this.player.maxVelocity.x)
-      this.player.velocity.x -= 1;
-  }
 
   // if (this.keys[38]) {
   //   // up
@@ -226,20 +217,20 @@ Client.prototype.movePlayer = function() {
   // }
 
   /* Gradually reduce velocity due to friction */
-  this.player.velocity.y *= this.player.friction;
-  this.player.velocity.x *= this.player.friction;
+  // this.player.momentum.y *= this.player.friction;
+  // this.player.momentum.x *= this.player.friction;
 
   /* Check for a collision */
   this.checkForCollision();
 
   /* Update the player's position */
-  this.player.position.y += this.player.velocity.y;
-  this.player.position.x += this.player.velocity.x;
+  this.player.position.y += this.player.velocity.y
+  this.player.position.x += this.player.velocity.x
 
   /* Stop the player from leaving the game area */
   this.player.position = this.checkForBoundary(this.player.position);
 
-  
+  /* Send the new player position to the server */ 
   this.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
 }
 
@@ -248,17 +239,26 @@ Client.prototype.checkForCollision = function(player) {
 }
 
 Client.prototype.checkForBoundary = function(playerPosition) {
+
+  /* Existing player position */
   var position = {x: playerPosition.x, y: playerPosition.y};
 
+  /* If the player is at the left boundary */
   if(playerPosition.x < 0) {
     position.x = 0;
   }
+
+  /* If the player is at the right boundary */
   if(playerPosition.x > this.canvas.width - 20) {
     position.x = this.canvas.width - 20;
   }
+
+  /* If the player is at the top boundary */
   if(playerPosition.y < 0) {
     position.y = 0;
   }
+
+  /* If the player is at the bottom boundary */
   if(playerPosition.y > this.canvas.height - 20) {
     position.y = this.canvas.height - 20;
   }
@@ -267,6 +267,7 @@ Client.prototype.checkForBoundary = function(playerPosition) {
 }
 
 Client.prototype.positionDelta = function(before, after) {
+  /* Returns the difference between two position vectors */
   return {x: after.x - before.x, y: after.y - before.y};
 };
 
