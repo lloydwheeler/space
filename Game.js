@@ -1,6 +1,8 @@
 var Player = require("./Player");
+var Ball = require("./Ball");
 
 function Game(width, height) {
+  this.ball = new Ball(200, 200);
   this.numPlayers = 0;
   this.players = [];
   this.playArea = {

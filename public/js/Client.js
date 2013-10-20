@@ -191,33 +191,33 @@ Client.prototype.movePlayer = function() {
   }
 
 
-  // if (this.keys[38]) {
-  //   // up
-  //   if(this.player.velocity.y > -this.player.maxVelocity)
-  //     this.player.velocity.y -= 1;
-  // }
+  if (this.keys[38]) {
+    // up
+    if(this.player.velocity.y > -this.player.maxVelocity)
+      this.player.velocity.y -= 1;
+  }
 
-  // if (this.keys[40]) {
-  //   // down
-  //   if(this.player.velocity.y < this.player.maxVelocity)
-  //     this.player.velocity.y += 1;
-  // }
+  if (this.keys[40]) {
+    // down
+    if(this.player.velocity.y < this.player.maxVelocity)
+      this.player.velocity.y += 1;
+  }
 
-  // if (this.keys[39]) {
-  //   // left
-  //   if(this.player.velocity.x < this.player.maxVelocity)
-  //     this.player.velocity.x += 1;
-  // }
+  if (this.keys[39]) {
+    // left
+    if(this.player.velocity.x < this.player.maxVelocity)
+      this.player.velocity.x += 1;
+  }
 
-  // if (this.keys[37]) {
-  //   // right
-  //   if(this.player.velocity.x > -this.player.maxVelocity)
-  //     this.player.velocity.x -= 1;
-  // }
+  if (this.keys[37]) {
+    // right
+    if(this.player.velocity.x > -this.player.maxVelocity)
+      this.player.velocity.x -= 1;
+  }
 
   /* Gradually reduce velocity due to friction */
-  // this.player.momentum.y *= this.player.friction;
-  // this.player.momentum.x *= this.player.friction;
+  // this.player.velocity.y *= this.player.friction;
+  // this.player.velocity.x *= this.player.friction;
 
   /* Check for a collision */
   this.checkForCollision();
@@ -231,8 +231,22 @@ Client.prototype.movePlayer = function() {
     this.ball.updatePossession(this.player);
   }
 
+  if((this.gamepad.buttons[0] === 1 || this.keys[32]) && this.checkforPossession()) {
+    this.ball.possession = false;
+    this.ball.velocity.x = this.player.velocity.x*3;
+    this.ball.velocity.y = this.player.velocity.y*3;
+  }
+
+  this.ball.velocity.y *= this.ball.friction;
+  this.ball.velocity.x *= this.ball.friction;
+
+
+  this.ball.position.x += this.ball.velocity.x;
+  this.ball.position.y += this.ball.velocity.y;
+
   /* Stop the player from leaving the game area */
-  this.player.position = this.checkForBoundary(this.player.position);
+  this.checkBallBoundary(this.ball);
+  this.player.position = this.checkForBoundary(this.player.position, 20);
 
   /* Send the new player position to the server */ 
   this.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
@@ -249,7 +263,7 @@ Client.prototype.checkForCollision = function(player) {
   /* Check for collision with all other players */
 }
 
-Client.prototype.checkForBoundary = function(playerPosition) {
+Client.prototype.checkForBoundary = function(playerPosition, width) {
 
   /* Existing player position */
   var position = {x: playerPosition.x, y: playerPosition.y};
@@ -260,8 +274,8 @@ Client.prototype.checkForBoundary = function(playerPosition) {
   }
 
   /* If the player is at the right boundary */
-  if(playerPosition.x > this.canvas.width - 20) {
-    position.x = this.canvas.width - 20;
+  if(playerPosition.x > this.canvas.width - width) {
+    position.x = this.canvas.width - width;
   }
 
   /* If the player is at the top boundary */
@@ -270,11 +284,32 @@ Client.prototype.checkForBoundary = function(playerPosition) {
   }
 
   /* If the player is at the bottom boundary */
-  if(playerPosition.y > this.canvas.height - 20) {
-    position.y = this.canvas.height - 20;
+  if(playerPosition.y > this.canvas.height - width) {
+    position.y = this.canvas.height - width;
   }
 
   return position;
+}
+
+Client.prototype.checkBallBoundary = function(ball) {
+  if(ball.position.x < 0) {
+    this.ball.velocity.x *= -.75;
+  }
+
+  /* If the player is at the right boundary */
+  if(ball.position.x > this.canvas.width - ball.size) {
+    this.ball.velocity.x *= -.75;
+  }
+
+  /* If the player is at the top boundary */
+  if(ball.position.y < 0) {
+    this.ball.velocity.y *= -.75;
+  }
+
+  /* If the player is at the bottom boundary */
+  if(ball.position.y > this.canvas.height - ball.size) {
+    this.ball.velocity.y *= -.75;
+  }
 }
 
 Client.prototype.positionDelta = function(before, after) {

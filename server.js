@@ -47,6 +47,10 @@ function init() {
       }
     });
 
+    socket.on('update ball', function(data) {
+      io.sockets.emit('update ball', {id: clientID, x: data.x, y: data.y });
+    });
+
   });
 
 
