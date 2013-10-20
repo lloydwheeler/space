@@ -22,8 +22,7 @@ Client.prototype.initGame = function() {
   this.canvas.width = width;
   this.canvas.height = height;
   this.ctx = this.canvas.getContext('2d');
-  // this.ball = new Ball((this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
-  // this.ball.draw(this.ctx);
+  this.ball = new Ball((this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
 
 
   this.initListeners();
@@ -99,7 +98,7 @@ Client.prototype.addPlayer = function(username) {
   /* Add a new player to the game */
 
   if (this.player === null) {
-    this.player = new Player(10, (this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
+    this.player = new Player(10, (100), (100));
     this.socket.emit("add player", this.player.position.x, this.player.position.y);
     this.initControls();
   }
@@ -135,7 +134,7 @@ Client.prototype.draw = function() {
 
   this.drawStars();
   this.drawPlayers();
-  // this.ball.draw(this.ctx);
+  this.ball.draw(this.ctx);
   requestAnimationFrame(this.draw.bind(this));
 };
 
@@ -227,11 +226,23 @@ Client.prototype.movePlayer = function() {
   this.player.position.y += this.player.velocity.y
   this.player.position.x += this.player.velocity.x
 
+  /* Check for possession */
+  if(this.checkforPossession() || this.ball.possession === this.player) {
+    this.ball.updatePossession(this.player);
+  }
+
   /* Stop the player from leaving the game area */
   this.player.position = this.checkForBoundary(this.player.position);
 
   /* Send the new player position to the server */ 
   this.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
+}
+
+Client.prototype.checkforPossession = function() {
+  return this.player.position.x < this.ball.position.x + this.ball.size &&
+         this.player.position.x + 20 > this.ball.position.x &&
+         this.player.position.y < this.ball.position.y + this.ball.size &&
+         this.player.position.y + 20 > this.ball.position.y;
 }
 
 Client.prototype.checkForCollision = function(player) {
