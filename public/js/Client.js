@@ -14,21 +14,25 @@ function Client(server) {
   this.initGame();
 }
 
+
+
 Client.prototype.initGame = function() {
 
   var height = $(window).height();
   var width = $(window).width();
   this.canvas = $('#canvas').get(0);
-  this.canvas.width = width;
-  this.canvas.height = height;
+  this.canvas.width = 1000;
+  this.canvas.height = 1000;
   this.ctx = this.canvas.getContext('2d');
   this.ball = new Ball((this.canvas.width/2 - 10), (this.canvas.height/2 - 10));
-
+  this.canGainPossession = true;
 
   this.initListeners();
   this.initStars();
   requestAnimationFrame(this.draw.bind(this));
 };
+
+
 
 Client.prototype.initListeners = function() {
 
@@ -82,10 +86,10 @@ Client.prototype.initControls = function() {
   });
 };
 
+
 Client.prototype.initPlayers = function(players) {
 
   /* Initiliase all other players on the server */
-
   var i = 0, numPlayers = players.length, player;
   for(; i < numPlayers; i++) {
     player = players[i];
@@ -93,10 +97,11 @@ Client.prototype.initPlayers = function(players) {
   }
 };
 
+
+
 Client.prototype.addPlayer = function(username) {
 
   /* Add a new player to the game */
-
   if (this.player === null) {
     this.player = new Player(10, (100), (100));
     this.socket.emit("add player", this.player.position.x, this.player.position.y);
@@ -104,10 +109,11 @@ Client.prototype.addPlayer = function(username) {
   }
 };
 
+
+
 Client.prototype.findPlayerById = function(id) {
 
   /* Find a player by a given ID */
-
   var i = 0, numPlayers = this.players.length;
   for(; i < numPlayers; i++) {
     if (this.players[i].id === id) {
@@ -116,9 +122,11 @@ Client.prototype.findPlayerById = function(id) {
   }
 };
 
+
+
 Client.prototype.draw = function() {
-  var height = $(window).height();
-  var width = $(window).width();
+  var height = this.canvas.height;
+  var width = this.canvas.width;
 
   this.ctx.clearRect(0,0,width,height);
 
@@ -127,6 +135,10 @@ Client.prototype.draw = function() {
 
   this.ctx.fillStyle = "#2A2C33";
   this.ctx.fillRect(0,0,width,height);
+  this.ctx.strokeWidth = 2;
+  this.ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  this.ctx.strokeRect(0,0,width,height);
+  this.ctx.stroke();
 
   if (this.player !== null) {
     this.movePlayer();
@@ -145,6 +157,8 @@ Client.prototype.drawPlayers = function() {
   }
 };
 
+
+
 Client.prototype.initStars = function() {
   for(var i = 0; i < 40; i++) {
     var star = new Star(this.canvas.width*Math.random(), this.canvas.height*Math.random());
@@ -152,6 +166,8 @@ Client.prototype.initStars = function() {
     this.stars.push(star);
   }
 };
+
+
 
 Client.prototype.drawStars = function() {
   var i = 0, numStars = this.stars.length;
@@ -162,6 +178,8 @@ Client.prototype.drawStars = function() {
   }
 };
 
+
+
 Client.prototype.movePlayer = function() {
   var self = this;
 
@@ -170,24 +188,26 @@ Client.prototype.movePlayer = function() {
   this.gamepad = gamepads[0];
 
   /* Set the stick deadzone */
-  this.gamepad.deadzone = .15;
+  if(this.gamepad !== undefined) {
+    this.gamepad.deadzone = .15;
 
-  /* If the analogue stick is outside the deadzone in X direction */
-  if(Math.abs(this.gamepad.axes[0]) > this.gamepad.deadzone) {
-    /* Set the player speed to match the input value */
-    this.player.velocity.x = this.gamepad.axes[0]*this.player.maxVelocity;
-  } else {
-    /* Else reduce the player's velocity due to friction */
-    this.player.velocity.x *= this.player.friction;
-  }
-  
-  /* If the analogue stick is outside the deadzone in Y direction */
-  if(Math.abs(this.gamepad.axes[1]) > this.gamepad.deadzone) {
-    /* Set the player speed to match the input value */
-    this.player.velocity.y = this.gamepad.axes[1]*this.player.maxVelocity;
-  } else {
-    /* Else reduce the player's velocity due to friction */
-    this.player.velocity.y *= this.player.friction;
+    /* If the analogue stick is outside the deadzone in X direction */
+    if(Math.abs(this.gamepad.axes[0]) > this.gamepad.deadzone) {
+      /* Set the player speed to match the input value */
+      this.player.velocity.x = this.gamepad.axes[0]*this.player.maxVelocity;
+    } else {
+      /* Else reduce the player's velocity due to friction */
+      this.player.velocity.x *= this.player.friction;
+    }
+    
+    /* If the analogue stick is outside the deadzone in Y direction */
+    if(Math.abs(this.gamepad.axes[1]) > this.gamepad.deadzone) {
+      /* Set the player speed to match the input value */
+      this.player.velocity.y = this.gamepad.axes[1]*this.player.maxVelocity;
+    } else {
+      /* Else reduce the player's velocity due to friction */
+      this.player.velocity.y *= this.player.friction;
+    }
   }
 
 
@@ -216,8 +236,8 @@ Client.prototype.movePlayer = function() {
   }
 
   /* Gradually reduce velocity due to friction */
-  // this.player.velocity.y *= this.player.friction;
-  // this.player.velocity.x *= this.player.friction;
+  this.player.velocity.y *= this.player.friction;
+  this.player.velocity.x *= this.player.friction;
 
   /* Check for a collision */
   this.checkForCollision();
@@ -227,30 +247,45 @@ Client.prototype.movePlayer = function() {
   this.player.position.x += this.player.velocity.x
 
   /* Check for possession */
-  if(this.checkforPossession() || this.ball.possession === this.player) {
+  if((this.checkforPossession() || this.ball.possession === this.player) && this.canGainPossession) {
     this.ball.updatePossession(this.player);
+    this.player.maxVelocity = 7;
   }
 
-  if((this.gamepad.buttons[0] === 1 || this.keys[32]) && this.checkforPossession()) {
+  /* On a pass action */
+  if(this.keys[32] && this.checkforPossession()) {
     this.ball.possession = false;
-    this.ball.velocity.x = this.player.velocity.x*3;
-    this.ball.velocity.y = this.player.velocity.y*3;
+    this.ball.velocity.x = this.player.velocity.x*4;
+    this.ball.velocity.y = this.player.velocity.y*4;
+    console.log(this.player.velocity);
+    this.canGainPossession = false;
+    setInterval(function() {
+      self.canGainPossession = true;
+    }, 500);
   }
 
-  this.ball.velocity.y *= this.ball.friction;
-  this.ball.velocity.x *= this.ball.friction;
+  /* If the ball isn't in possession by any player */
+  if(!this.ball.possession) {
+    /* Reduce the ball's velocity due to friction */
+    this.ball.velocity.y *= this.ball.friction;
+    this.ball.velocity.x *= this.ball.friction;
 
+    /* Update the ball's position */
+    this.ball.position.x += this.ball.velocity.x;
+    this.ball.position.y += this.ball.velocity.y;
 
-  this.ball.position.x += this.ball.velocity.x;
-  this.ball.position.y += this.ball.velocity.y;
+    /* Stop the ball from leaving the game area */
+    this.checkBallBoundary(this.ball);
+  }
 
   /* Stop the player from leaving the game area */
-  this.checkBallBoundary(this.ball);
   this.player.position = this.checkForBoundary(this.player.position, 20);
 
   /* Send the new player position to the server */ 
   this.socket.emit('update player', {x: self.player.position.x, y: self.player.position.y});
 }
+
+
 
 Client.prototype.checkforPossession = function() {
   return this.player.position.x < this.ball.position.x + this.ball.size &&
@@ -259,9 +294,13 @@ Client.prototype.checkforPossession = function() {
          this.player.position.y + 20 > this.ball.position.y;
 }
 
+
+
 Client.prototype.checkForCollision = function(player) {
   /* Check for collision with all other players */
 }
+
+
 
 Client.prototype.checkForBoundary = function(playerPosition, width) {
 
@@ -291,26 +330,30 @@ Client.prototype.checkForBoundary = function(playerPosition, width) {
   return position;
 }
 
+
+
 Client.prototype.checkBallBoundary = function(ball) {
   if(ball.position.x < 0) {
-    this.ball.velocity.x *= -.75;
+    this.ball.velocity.x *= -1;
   }
 
   /* If the player is at the right boundary */
   if(ball.position.x > this.canvas.width - ball.size) {
-    this.ball.velocity.x *= -.75;
+    this.ball.velocity.x *= -1;
   }
 
   /* If the player is at the top boundary */
   if(ball.position.y < 0) {
-    this.ball.velocity.y *= -.75;
+    this.ball.velocity.y *= -1;
   }
 
   /* If the player is at the bottom boundary */
   if(ball.position.y > this.canvas.height - ball.size) {
-    this.ball.velocity.y *= -.75;
+    this.ball.velocity.y *= -1;
   }
 }
+
+
 
 Client.prototype.positionDelta = function(before, after) {
   /* Returns the difference between two position vectors */
